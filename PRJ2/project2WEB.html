@@ -1,0 +1,357 @@
+<!DOCTYPE html> 
+<html lang="uk"> 
+	<head>
+		<meta charset="UTF-8"> 
+		<title>Біогазова установка - Моніторинг</title> 
+		<style> 
+			*{ margin: 0; padding: 0; box-sizing: border-box; } 
+			body { 
+				font-family: 'Segoe UI', sans-serif; 
+				background: linear-gradient(135deg, #10bb16 0%, #2aaf31 25%, #25802a 50%, #0a640d 100%);  min-height: 100vh; 
+				padding: 20px; 
+			} 
+			.container { max-width: 1200px; margin: 0 auto; } 
+			header { 
+				background: white; 
+				padding: 30px; 
+				border-radius: 10px; 
+				box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+				margin-bottom: 20px; 
+				text-align: center; 
+			} 
+			.controls { 
+				background: white; 
+				padding: 20px; 
+				border-radius: 10px; 
+				margin-bottom: 20px; 
+				display: flex; 
+				gap: 10px; 
+			} 
+			.btn { 
+				padding: 12px 24px;
+				border: none; 
+				border-radius: 5px; 
+				cursor: pointer; 
+				font-size: 16px; 
+				transition: transform 0.2s; 
+			} 
+			.btn:hover { transform: translateY(-2px); } 
+			.btn-primary { background: #3498db; color: white; }  .btn-success { background: #2ecc71; color: white; } 
+			.btn-danger { background: #e74c3c; color: white; } .btn-warning { background: #f39c12; color: white; } 
+			.dashboard { 
+				display: grid; 
+				grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  gap: 20px; 
+			} 
+			.card { 
+				background: white; 
+				padding: 30px; 
+				border-radius: 10px; 
+				box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+				text-align: center; 
+				transition: transform 0.3s; 
+			} 
+			.card:hover { transform: translateY(-5px); } 
+			.big-number { 
+				font-size: 48px; 
+				font-weight: bold; 
+				color: #2c3e50; 
+			} 
+			.unit { font-size: 20px; color: #7f8c8d; } 
+			.status-indicator { font-size: 30px; margin-top: 10px; }  
+			.status-normal { color: #2ecc71; } 
+			.status-warning { color: #f39c12; } 
+			.status-critical { color: #e74c3c; } 
+			.history { 
+				background: white; 
+				padding: 20px; 
+				border-radius: 10px; 
+				margin-top: 20px; 
+				box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+			} 
+			.history h2 { text-align: center; margin-bottom: 20px; } 
+		</style> 
+	</head> 
+	<body> 
+		<main class="container" role="main"> 
+			<header role="banner"> 
+				<h1>🌱 Біогазова установка</h1> 
+				<p>Останнє оновлення: <span id="lastUpdate" aria-live="polite">--:--:--</span></p>  
+			</header> 
+			<section class="controls" aria-label="Панель керування"> 
+				<button id="updateBtn" class="btn btn-primary" aria-label="Оновити дані вручну">⟳ Оновити</button>  <button id="autoUpdateBtn" class="btn btn-success" style="min-width: 190px;" aria-label="Увімкнути автоматичне оновлення">▶ Автооновлення</button>  <span id="autoStatus" aria-live="polite">Вимкнено</span> 
+				<button id="historyBtn" class="btn btn-warning" style="margin-left: auto; font-family: 'Segoe UI Symbol', 'Segoe UI';" aria-label="Показати історію вимірювань">📊 Історія</button>
+			</section> 
+			<section class="dashboard" aria-label="Панель моніторингу"> 
+				<div class="card" role="article" aria-labelledby="param0"> 
+					<h3>Вироблення біогазу</h3> 
+					<div class="value"> 
+						<span id="param0" class="big-number" aria-label="Значення вироблення біогазу">0</span> 
+						<span class="unit">м³/год</span> 
+					</div> 
+					<div id="status0" class="status-indicator" aria-label="Статус вироблення біогазу">●</div> 
+				</div> 
+				<div class="card" role="article" aria-labelledby="param1"> 
+					<h3>Вміст метану</h3> 
+					<div class="value"> 
+						<span id="param1" class="big-number" aria-label="Значення вмісту метану">0</span> 
+						<span class="unit">%</span> 
+					</div> 
+					<div id="status1" class="status-indicator" aria-label="Статус вмісту метану">●</div> 
+				</div> 
+				<div class="card" role="article" aria-labelledby="param2"> 
+					<h3>Температура реактора</h3> 
+					<div class="value"> 
+						<span id="param2" class="big-number" aria-label="Значення температури реактора">0</span> 
+						<span class="unit">°C</span> 
+					</div> 
+					<div id="status2" class="status-indicator" aria-label="Статус температури реактора">●</div> 
+				</div> 
+				<div class="card" role="article" aria-labelledby="param3"> 
+					<h3>Вихідна електрична потужність</h3> 
+					<div class="value"> 
+						<span id="param3" class="big-number" aria-label="Значення електричної потужності">0</span> 
+						<span class="unit">кВт</span> 
+					</div>  
+					<div id="status3" class="status-indicator" aria-label="Статус електричної потужності">●</div> 
+				</div> 
+				<div class="card" role="article" aria-labelledby="param4"> 
+					<h3>Рівень субстрату в реакторі</h3> 
+					<div class="value"> 
+						<span id="param4" class="big-number" aria-label="Значення рівня субстрату">0</span> 
+						<span class="unit">%</span> 
+					</div> 
+					<div id="status4" class="status-indicator" aria-label="Статус рівня субстрату">●</div> 
+				</div> 
+				<div class="card" role="article" aria-labelledby="param5"> 
+					<h3>pH середовища</h3> 
+					<div class="value"> 
+						<span id="param5" class="big-number" aria-label="Значення pH">0</span> 
+						<span class="unit"></span> 
+					</div> 
+					<div id="status5" class="status-indicator" aria-label="Статус pH">●</div> 
+				</div> 
+				<div class="card" role="article" aria-labelledby="param6"> 
+					<h3>Час роботи установки</h3> 
+					<div class="value"> 
+						<span id="param6" class="big-number" aria-label="Значення часу роботи">0</span> 
+						<span class="unit">год</span> 
+					</div> 
+					<div id="status6" class="status-indicator" aria-label="Статус часу роботи">●</div> 
+				</div> 
+			</section> 
+			<section id="history" class="history" style="display: none;" aria-label="Історія вимірювань"> 
+				<h2>Історія вимірювань</h2> 
+				<div id="historyContent"></div> 
+				<button id="exportBtn" class="btn btn-primary" aria-label="Експортувати історію">⏏︎ Експорт TXT</button>
+			</section>
+		</main> 
+		<script> 
+			let autoUpdateInterval = null; 
+			let isAutoUpdateEnabled = false;
+			const sensorParameters = [ 
+			{ 
+				"name": "Вироблення біогазу", "unit": "м³/год", "min": 20, "max": 80, "normal": [ 40, 70 ] 
+			}, 
+			{ 
+				"name": "Вміст метану", "unit": "%", "min": 55, "max": 70, "normal": [ 60, 68 ] 
+			}, 
+			{ 
+				"name": "Температура реактора", "unit": "°C", "min": 35, "max": 50, "normal": [ 38, 45 ]
+			}, 
+			{ 
+				"name": "Вихідна електрична потужність", "unit": "кВт", "min": 0, "max": 300, "normal": [ 100, 250 ] 
+			}, 
+			{ 
+				"name": "Рівень субстрату в реакторі", "unit": "%", "min": 0, "max": 100, "normal": [ 40, 80 ] 
+			}, 
+			{ 
+				"name": "pH середовища", "unit": "", "min": 0, "max": 14, "normal": [ 6.5, 7.5 ] 
+			}, 
+			{ 
+				"name": "Час роботи установки", "unit": "год", "min": 0, "max": 8760, "normal": [ 1, 8760 ] 
+			} 
+			]; 
+			function generateSensorData() {
+				try {
+					return sensorParameters.map(param => {
+						const decimals = param.unit.includes('°') || param.unit === '%' ? 0 : 1;
+						return parseFloat((Math.random() * (param.max - param.min) + param.min).toFixed(decimals));
+					});
+				} catch (error) {
+					console.error('Error generating sensor data:', error);
+					return sensorParameters.map(() => 0);
+				}
+			}
+
+			function updateDisplay(data) {
+				try {
+					data.forEach((value, idx) => {
+						const paramElement = document.getElementById('param' + idx);
+						if (paramElement) paramElement.textContent = value;
+						const indicator = document.getElementById('status' + idx);
+						if (indicator) {
+							const status = checkStatus(value, sensorParameters[idx]);
+							indicator.className = 'status-indicator status-' + status;
+							if (status === 'warning' || status === 'critical') playSound(status);
+						}
+					});
+					formatTimestamp();
+				} catch (error) {
+					console.error('Error updating display:', error);
+				}
+			}
+
+			function checkStatus(value, limits) {
+				try {
+					const v = parseFloat(value);
+					if (v >= limits.normal[0] && v <= limits.normal[1]) return 'normal';
+					if (v >= limits.min && v <= limits.max) return 'warning';
+					return 'critical';
+				} catch (error) {
+					console.error('Error checking status:', error);
+					return 'normal';
+				}
+			}
+
+			function formatTimestamp() {
+				try {
+					document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('uk-UA');
+				} catch (error) {
+					console.error('Error formatting timestamp:', error);
+				}
+			}
+
+			function manualUpdate() {
+				try {
+					const data = generateSensorData();
+					updateDisplay(data);
+					saveData(data);
+				} catch (error) {
+					console.error('Error in manual update:', error);
+				}
+			}
+
+			function toggleAutoUpdate() {
+				try {
+					const btn = document.getElementById('autoUpdateBtn');
+					const status = document.getElementById('autoStatus');
+					if (!isAutoUpdateEnabled) {
+						autoUpdateInterval = setInterval(() => {
+							const data = generateSensorData();
+							updateDisplay(data);
+							saveData(data);
+						}, 3000);
+						isAutoUpdateEnabled = true;
+						btn.textContent = '⏹︎ Зупинити';
+						btn.className = 'btn btn-danger';
+						status.textContent = 'Увімкнено (3 сек)';
+					} else {
+						clearInterval(autoUpdateInterval);
+						isAutoUpdateEnabled = false;
+						btn.textContent = '▶ Автооновлення';
+						btn.className = 'btn btn-success';
+						status.textContent = 'Вимкнено';
+					}
+				} catch (error) {
+					console.error('Error toggling auto update:', error);
+				}
+			}
+
+			function saveData(data) {
+				try {
+					const history = JSON.parse(localStorage.getItem('sensorHistory') || '[]');
+					const entry = {
+						timestamp: new Date().toISOString(),
+						data: data
+					};
+					history.push(entry);
+					if (history.length > 100) history.shift();
+					localStorage.setItem('sensorHistory', JSON.stringify(history));
+				} catch (error) {
+					console.error('Error saving data:', error);
+				}
+			}
+
+			function showHistory() {
+				try {
+					const historyDiv = document.getElementById('history');
+					const content = document.getElementById('historyContent');
+					const history = JSON.parse(localStorage.getItem('sensorHistory') || '[]');
+					content.innerHTML = '';
+					if (history.length === 0) {
+						content.innerHTML = '<p>Історія порожня.</p>';
+					} else {
+						history.slice(-10).forEach(entry => {
+							const time = new Date(entry.timestamp).toLocaleString('uk-UA');
+							const dataStr = entry.data.map((val, idx) => `${sensorParameters[idx].name}: ${val} ${sensorParameters[idx].unit}`).join(', ');
+							content.innerHTML += `<p><strong>${time}:</strong> ${dataStr}</p>`;
+						});
+					}
+					historyDiv.style.display = historyDiv.style.display === 'none' ? 'block' : 'none';
+				} catch (error) {
+					console.error('Error showing history:', error);
+				}
+			}
+
+			function playSound(status) {
+				try {
+					const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+					const oscillator = audioContext.createOscillator();
+					const gainNode = audioContext.createGain();
+					oscillator.connect(gainNode);
+					gainNode.connect(audioContext.destination);
+					let frequency = 600; // default
+					let duration = 0.2;
+					if (status === 'warning') {
+						frequency = 400;
+						duration = 0.3;
+					} else if (status === 'critical') {
+						frequency = 1000;
+						duration = 0.5;
+					}
+					oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+					gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+					oscillator.start(audioContext.currentTime);
+					oscillator.stop(audioContext.currentTime + duration);
+				} catch (error) {
+					console.error('Error playing sound:', error);
+				}
+			}
+
+			function exportData() {
+				try {
+					const history = JSON.parse(localStorage.getItem('sensorHistory') || '[]');
+					let dataStr = 'Історія вимірювань біогазової установки\n\n';
+					history.forEach(entry => {
+						const time = new Date(entry.timestamp).toLocaleString('uk-UA');
+						const dataStrLine = entry.data.map((val, idx) => `${sensorParameters[idx].name}: ${val} ${sensorParameters[idx].unit}`).join(', ');
+						dataStr += `${time}: ${dataStrLine}\n`;
+					});
+					const blob = new Blob([dataStr], { type: 'text/plain' });
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = 'BPP.txt';
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					URL.revokeObjectURL(url);
+				} catch (error) {
+					console.error('Error exporting data:', error);
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', () => {
+				try {
+					manualUpdate();
+					document.getElementById('updateBtn').addEventListener('click', manualUpdate);
+					document.getElementById('autoUpdateBtn').addEventListener('click', toggleAutoUpdate);
+					document.getElementById('historyBtn').addEventListener('click', showHistory);
+					document.getElementById('exportBtn').addEventListener('click', exportData);
+				} catch (error) {
+					console.error('Error initializing:', error);
+				}
+			});
+		</script> 
+	</body> 
+</html> 
