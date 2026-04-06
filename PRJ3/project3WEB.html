@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uk">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Аналіз втрат енергії</title>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1>⚡ Аналіз втрат енергії в електромережі</h1>
+				<p>Розрахунок втрат потужності на довгих лініях передачі</p>
+			</header>
+			<main>
+				<section class="form-section">
+					<h2>Параметри розрахунку</h2>
+					<form id="analysisForm">
+						<div class="form-row">
+							<div class="form-group">
+								<label for="section">Переріз проводу (мм²) *</label>
+								<input
+									type="number"
+									id="section"
+									name="section"
+									required
+									min="1"
+									step="0.5"
+									placeholder="Наприклад: 50"
+								>
+							</div>
+							<div class="form-group">
+								<label for="voltage">Напруга (В) *</label>
+								<select id="voltage" name="voltage" required>
+									<option value="">Оберіть напругу</option>
+									<option value="400">400 В (низька)</option>
+									<option value="6000">6 кВ (середня)</option>
+									<option value="10000">10 кВ (середня)</option>
+									<option value="35000">35 кВ (висока)</option>
+									<option value="110000">110 кВ (висока)</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="length">Довжина лінії (км) *</label>
+								<input
+									type="number"
+									id="length"
+									name="length"
+									required
+									min="0.1"
+									step="0.1"
+									placeholder="Наприклад: 10"
+								>
+							</div>
+							<div class="form-group">
+								<label for="power">Потужність (кВт) *</label>
+								<input
+									type="number"
+									id="power"
+									name="power"
+									required
+									min="0.1"
+									step="0.1"
+									placeholder="Наприклад: 100"
+								>
+							</div>
+						</div>
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary">Розрахувати</button>
+							<button type="reset" class="btn btn-secondary">Очистити</button>
+						</div>
+					</form>
+					<div id="message" class="message"></div>
+				</section>
+				<section class="result-section">
+					<div id="result" class="result-empty">
+						<p>Результати з'являться після розрахунку</p>
+					</div>
+				</section>
+				<section class="history-section">
+					<div id="history" class="history-list"></div>
+				</section>
+			</main>
+		</div>
+		<script src="script.js"></script>
+	</body>
+</html>
